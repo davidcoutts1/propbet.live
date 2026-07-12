@@ -56,9 +56,10 @@ h3 {
     @apply border border-white/10 bg-white/[0.04] backdrop-blur-xl;
   }
   .input {
-    @apply w-full rounded-xl border border-border bg-surface2/70 px-3.5 py-2.5 text-sm
+    /* 16px on mobile prevents iOS auto-zoom on focus; 14px from sm up */
+    @apply w-full rounded-xl border border-border bg-surface2/70 px-3.5 py-2.5 text-base
       text-slate-100 placeholder:text-faint outline-none transition
-      focus:border-primary/60 focus:ring-2 focus:ring-primary/20;
+      focus:border-primary/60 focus:ring-2 focus:ring-primary/20 sm:text-sm;
   }
   .label {
     @apply mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted;

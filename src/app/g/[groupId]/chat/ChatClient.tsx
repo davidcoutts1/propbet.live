@@ -37,18 +37,21 @@ export default function ChatClient({
   const [reactions, setReactions] = useState<ReactionRow[]>(initialReactions);
   const [text, setText] = useState("");
   const [picker, setPicker] = useState<string | null>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const supabase = useRef(createClient()).current;
 
-  const scrollToBottom = useCallback(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  // Scroll ONLY the message list — never the page (which would push the header
+  // off the top of the screen).
+  const scrollToBottom = useCallback((smooth = true) => {
+    const el = listRef.current;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "auto" });
   }, []);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages.length, scrollToBottom]);
 
-  // Realtime: new messages + reaction changes for this group
+  // Realtime: messages (insert + delete) and reactions (insert + delete)
   useEffect(() => {
     const channel = supabase
       .channel(`group-${groupId}`)
@@ -67,6 +70,14 @@ export default function ChatClient({
               ? prev
               : [...prev, { ...m, username: usernames[m.user_id] ?? "player" }]
           );
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "messages" },
+        (payload) => {
+          const old = payload.old as { id: string };
+          setMessages((prev) => prev.filter((m) => m.id !== old.id));
         }
       )
       .on(
@@ -113,6 +124,13 @@ export default function ChatClient({
     }
   }
 
+  async function deleteMessage(id: string) {
+    setPicker(null);
+    setMessages((prev) => prev.filter((m) => m.id !== id));
+    setReactions((prev) => prev.filter((r) => r.message_id !== id));
+    await supabase.from("messages").delete().eq("id", id);
+  }
+
   async function toggleReaction(messageId: string, emoji: string) {
     setPicker(null);
     const mine = reactions.find(
@@ -146,9 +164,24 @@ export default function ChatClient({
     return [...byEmoji.entries()];
   }
 
+  const myEmojisFor = (messageId: string) =>
+    new Set(
+      reactions
+        .filter((r) => r.message_id === messageId && r.user_id === userId)
+        .map((r) => r.emoji)
+    );
+
   return (
-    <div className="flex h-[calc(100dvh-11rem)] flex-col">
-      <div className="flex-1 space-y-3 overflow-y-auto pb-2">
+    <div className="-mt-5 -mb-28 flex h-[calc(100dvh-7.25rem-env(safe-area-inset-bottom))] flex-col lg:-mb-12 lg:h-[calc(100dvh-7rem)]">
+      {/* Tap-anywhere backdrop to dismiss the reaction picker */}
+      {picker && (
+        <div className="fixed inset-0 z-10" onClick={() => setPicker(null)} />
+      )}
+
+      <div
+        ref={listRef}
+        className="flex-1 space-y-3 overflow-y-auto overscroll-contain px-0.5 py-4"
+      >
         {messages.length === 0 && (
           <div className="card text-center text-sm text-muted">
             No messages yet. Say hello 👋
@@ -157,6 +190,7 @@ export default function ChatClient({
         {messages.map((m) => {
           const mine = m.user_id === userId;
           const rs = reactionsFor(m.id);
+          const myEmojis = myEmojisFor(m.id);
           return (
             <div
               key={m.id}
@@ -165,12 +199,12 @@ export default function ChatClient({
               {!mine && (
                 <span className="mb-0.5 px-1 text-xs text-muted">{m.username}</span>
               )}
-              <div className="group relative max-w-[80%]">
+              <div className="relative max-w-[80%]">
                 <button
                   onClick={() => setPicker(picker === m.id ? null : m.id)}
-                  className={`whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-left text-sm ${
+                  className={`whitespace-pre-wrap break-words rounded-2xl px-3.5 py-2 text-left text-[15px] ${
                     mine
-                      ? "rounded-br-md bg-primary text-slate-950"
+                      ? "rounded-br-md bg-brand-gradient text-slate-950"
                       : "rounded-bl-md bg-surface2 text-slate-100"
                   }`}
                 >
@@ -179,7 +213,7 @@ export default function ChatClient({
 
                 {picker === m.id && (
                   <div
-                    className={`absolute z-20 mt-1 flex gap-1 rounded-full border border-border bg-surface p-1 shadow-xl ${
+                    className={`absolute z-20 mt-1 flex items-center gap-1 rounded-full border border-borderLight bg-elevated p-1 shadow-float ${
                       mine ? "right-0" : "left-0"
                     }`}
                   >
@@ -187,11 +221,28 @@ export default function ChatClient({
                       <button
                         key={e}
                         onClick={() => toggleReaction(m.id, e)}
-                        className="rounded-full px-1.5 py-0.5 text-lg hover:bg-surface2"
+                        className={`rounded-full px-1.5 py-0.5 text-lg transition ${
+                          myEmojis.has(e)
+                            ? "bg-primary/25 ring-1 ring-primary/50"
+                            : "hover:bg-surface2"
+                        }`}
                       >
                         {e}
                       </button>
                     ))}
+                    {mine && (
+                      <>
+                        <span className="mx-0.5 h-5 w-px bg-borderLight" />
+                        <button
+                          onClick={() => deleteMessage(m.id)}
+                          className="rounded-full px-2 py-0.5 text-base text-red-400 hover:bg-red-500/15"
+                          aria-label="Delete message"
+                          title="Delete message"
+                        >
+                          🗑
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -204,7 +255,7 @@ export default function ChatClient({
                       onClick={() => toggleReaction(m.id, emoji)}
                       className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs ${
                         info.mine
-                          ? "border-primary bg-primary/15"
+                          ? "border-primary/60 bg-primary/15"
                           : "border-border bg-surface2"
                       }`}
                     >
@@ -217,10 +268,9 @@ export default function ChatClient({
             </div>
           );
         })}
-        <div ref={bottomRef} />
       </div>
 
-      <form onSubmit={send} className="flex gap-2 pt-2">
+      <form onSubmit={send} className="flex gap-2 border-t border-border pt-3">
         <input
           className="input"
           value={text}
@@ -228,7 +278,7 @@ export default function ChatClient({
           placeholder="Message the group…"
           maxLength={2000}
         />
-        <button className="btn-primary" type="submit" disabled={!text.trim()}>
+        <button className="btn-primary shrink-0" type="submit" disabled={!text.trim()}>
           Send
         </button>
       </form>
