@@ -19,7 +19,7 @@ export default function CreateBetModal({
   const [category, setCategory] = useState<BetCategory>("straight");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [line, setLine] = useState<number>(0);
+  const [line, setLine] = useState<string>("");
   const [labelA, setLabelA] = useState("Yes");
   const [labelB, setLabelB] = useState("No");
   const [oddsA, setOddsA] = useState<number>(-110);
@@ -34,11 +34,15 @@ export default function CreateBetModal({
     e.preventDefault();
     setError(null);
     if (!title.trim()) return setError("Give the bet a title.");
-    if (oddsA === 0 || oddsB === 0)
-      return setError("American odds can't be 0. Use e.g. +100 for even.");
+    if (oddsA === 0 || oddsB === 0 || Number.isNaN(oddsA) || Number.isNaN(oddsB))
+      return setError("Enter valid American odds (e.g. +100 for even).");
 
-    const finalLabelA = isOU ? `Over ${line}` : labelA.trim() || "Option A";
-    const finalLabelB = isOU ? `Under ${line}` : labelB.trim() || "Option B";
+    const lineNum = parseFloat(line);
+    if (isOU && Number.isNaN(lineNum))
+      return setError("Enter a line for the over/under.");
+
+    const finalLabelA = isOU ? `Over ${lineNum}` : labelA.trim() || "Option A";
+    const finalLabelB = isOU ? `Under ${lineNum}` : labelB.trim() || "Option B";
 
     setSaving(true);
     const res = await createBet({
@@ -46,7 +50,7 @@ export default function CreateBetModal({
       title,
       description,
       category,
-      line: isOU ? line : null,
+      line: isOU ? lineNum : null,
       optionALabel: finalLabelA,
       optionAOdds: americanToDecimal(oddsA),
       optionBLabel: finalLabelB,
@@ -129,14 +133,15 @@ export default function CreateBetModal({
               <label className="label">Line</label>
               <input
                 type="number"
+                inputMode="decimal"
                 step="0.5"
                 className="input"
                 value={line}
-                onChange={(e) => setLine(Number(e.target.value))}
+                onChange={(e) => setLine(e.target.value)}
                 placeholder="210.5"
               />
               <p className="mt-1 text-xs text-muted">
-                Options become “Over {line}” and “Under {line}”.
+                Options become “Over {line || "…"}” and “Under {line || "…"}”.
               </p>
             </div>
           ) : (
