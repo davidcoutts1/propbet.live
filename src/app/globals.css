@@ -29,6 +29,11 @@ h3 {
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
 }
+
+/* Hide the mobile tab bar while composing a chat message */
+body.chat-typing [data-bottom-nav] {
+  display: none;
+}
 .safe-top {
   padding-top: env(safe-area-inset-top);
 }

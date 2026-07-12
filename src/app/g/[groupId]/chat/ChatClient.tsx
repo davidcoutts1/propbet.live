@@ -37,8 +37,15 @@ export default function ChatClient({
   const [reactions, setReactions] = useState<ReactionRow[]>(initialReactions);
   const [text, setText] = useState("");
   const [picker, setPicker] = useState<string | null>(null);
+  const [typing, setTyping] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const supabase = useRef(createClient()).current;
+
+  // Hide the mobile tab bar while the composer is focused
+  useEffect(() => {
+    document.body.classList.toggle("chat-typing", typing);
+    return () => document.body.classList.remove("chat-typing");
+  }, [typing]);
 
   // Scroll ONLY the message list — never the page (which would push the header
   // off the top of the screen).
@@ -172,7 +179,13 @@ export default function ChatClient({
     );
 
   return (
-    <div className="-mt-5 -mb-28 flex h-[calc(100dvh-7.25rem-env(safe-area-inset-bottom))] flex-col lg:-mb-12 lg:h-[calc(100dvh-7rem)]">
+    <div
+      className={`-mt-5 -mb-28 flex flex-col lg:-mb-12 lg:h-[calc(100dvh-7rem)] ${
+        typing
+          ? "h-[calc(100dvh-5rem)]"
+          : "h-[calc(100dvh-9rem-env(safe-area-inset-bottom))]"
+      }`}
+    >
       {/* Tap-anywhere backdrop to dismiss the reaction picker */}
       {picker && (
         <div className="fixed inset-0 z-10" onClick={() => setPicker(null)} />
@@ -275,6 +288,11 @@ export default function ChatClient({
           className="input"
           value={text}
           onChange={(e) => setText(e.target.value)}
+          onFocus={() => {
+            setTyping(true);
+            setTimeout(() => scrollToBottom(false), 50);
+          }}
+          onBlur={() => setTyping(false)}
           placeholder="Message the group…"
           maxLength={2000}
         />
