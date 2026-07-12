@@ -13,11 +13,19 @@ body {
 }
 
 body {
-  @apply bg-bg text-slate-100 antialiased;
+  @apply bg-bg font-sans text-slate-100 antialiased;
   -webkit-tap-highlight-color: transparent;
+  font-feature-settings: "cv02", "cv03", "cv04", "ss01";
 }
 
-/* Respect iOS safe areas for the bottom nav / PWA */
+h1,
+h2,
+h3 {
+  font-family: var(--font-grotesk), var(--font-inter), system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* iOS safe areas */
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -28,28 +36,32 @@ body {
 @layer components {
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5
-      text-sm font-semibold transition active:scale-[0.98] disabled:opacity-50
-      disabled:pointer-events-none;
+      text-sm font-semibold transition-all duration-150 active:scale-[0.98]
+      disabled:opacity-50 disabled:pointer-events-none;
   }
   .btn-primary {
-    @apply btn bg-primary text-slate-950 hover:bg-primaryDark;
+    @apply btn bg-brand-gradient text-slate-950 shadow-[0_6px_20px_-6px_rgba(34,224,138,0.6)]
+      hover:brightness-110;
   }
   .btn-ghost {
-    @apply btn bg-surface2 text-slate-100 hover:bg-border;
+    @apply btn border border-border bg-surface2/80 text-slate-100 hover:border-borderLight hover:bg-elevated;
   }
   .btn-danger {
-    @apply btn bg-danger/90 text-white hover:bg-danger;
+    @apply btn bg-red-500/90 text-white hover:bg-red-500;
   }
   .card {
-    @apply rounded-2xl border border-border bg-surface p-4;
+    @apply rounded-2xl border border-border bg-surface p-4 shadow-card;
+  }
+  .glass {
+    @apply border border-white/10 bg-white/[0.04] backdrop-blur-xl;
   }
   .input {
-    @apply w-full rounded-xl border border-border bg-surface2 px-3.5 py-2.5 text-sm
-      text-slate-100 placeholder:text-muted outline-none
-      focus:border-accent focus:ring-1 focus:ring-accent;
+    @apply w-full rounded-xl border border-border bg-surface2/70 px-3.5 py-2.5 text-sm
+      text-slate-100 placeholder:text-faint outline-none transition
+      focus:border-primary/60 focus:ring-2 focus:ring-primary/20;
   }
   .label {
-    @apply mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted;
+    @apply mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted;
   }
   .chip {
     @apply inline-flex items-center gap-1 rounded-full border border-border
@@ -57,16 +69,28 @@ body {
   }
 }
 
-/* Thin scrollbars for chat / lists */
+@layer utilities {
+  .text-gradient {
+    @apply bg-brand-gradient bg-clip-text text-transparent;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Thin scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #25324a transparent;
+  scrollbar-color: #212c42 transparent;
 }
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #25324a;
+  background: #212c42;
   border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2b3852;
 }

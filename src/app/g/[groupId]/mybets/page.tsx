@@ -123,7 +123,9 @@ export default async function MyBetsPage({
   return (
     <div className="space-y-6">
       <section>
-        <h1 className="mb-3 text-lg font-bold">Active bets</h1>
+        <h1 className="mb-3 font-display text-2xl font-bold tracking-tight">
+          Active bets
+        </h1>
         {open.length === 0 ? (
           <div className="card text-center text-sm text-muted">
             No active bets. Head to the Bets tab to place one.
@@ -139,7 +141,9 @@ export default async function MyBetsPage({
 
       {done.length > 0 && (
         <section>
-          <h2 className="mb-3 text-lg font-bold">Bet history</h2>
+          <h2 className="mb-3 font-display text-xl font-bold tracking-tight">
+            Bet history
+          </h2>
           <div className="space-y-3">
             {done.map((w) => (
               <WagerCard key={w.id} w={w} />

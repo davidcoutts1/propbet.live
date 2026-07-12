@@ -76,11 +76,19 @@ export default function BetsBoard({
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-5 flex items-end justify-between">
         <div>
-          <h1 className="text-lg font-bold">Open bets</h1>
-          <p className="text-xs text-muted">
-            Balance <span className="text-primary">{money(balance)}</span>
+          <h1 className="font-display text-2xl font-bold tracking-tight">
+            Open bets
+          </h1>
+          <p className="mt-0.5 text-sm text-muted lg:hidden">
+            Balance{" "}
+            <span className="font-semibold text-primary tabular">
+              {money(balance)}
+            </span>
+          </p>
+          <p className="mt-0.5 hidden text-sm text-muted lg:block">
+            Tap a side to build your slip.
           </p>
         </div>
         <button className="btn-primary" onClick={() => setShowCreate(true)}>
@@ -94,9 +102,9 @@ export default function BetsBoard({
           to start the action.
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           {initialBets.map((bet) => (
-            <div key={bet.id} className="card">
+            <div key={bet.id} className="card transition hover:border-borderLight">
               <div className="mb-1 flex items-start justify-between gap-2">
                 <div className="font-semibold">{bet.title}</div>
                 <span className="chip capitalize text-muted">
@@ -139,8 +147,8 @@ export default function BetsBoard({
 
       {/* Bet slip */}
       {slip.length > 0 && (
-        <div className="fixed inset-x-0 bottom-16 z-40 mx-auto max-w-2xl px-4">
-          <div className="rounded-2xl border border-border bg-surface2 p-4 shadow-2xl">
+        <div className="fixed inset-x-0 bottom-16 z-40 px-4 lg:bottom-6 lg:pl-64">
+          <div className="mx-auto max-w-2xl rounded-2xl border border-borderLight bg-elevated/95 p-4 shadow-float backdrop-blur">
             <div className="mb-2 flex items-center justify-between">
               <span className="text-sm font-semibold">
                 {isParlay ? `Parlay · ${slip.length} legs` : "Bet slip"}

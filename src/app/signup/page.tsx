@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SignupForm from "./SignupForm";
 import GoogleButton from "@/components/GoogleButton";
+import AuthShell from "@/components/AuthShell";
 
 export default async function SignupPage({
   searchParams,
@@ -16,31 +17,28 @@ export default async function SignupPage({
   } = await supabase.auth.getUser();
   if (user) redirect("/app");
 
-  const codeQ = invite ? `?invite=${encodeURIComponent(invite)}` : "";
+  const q = invite ? `?invite=${encodeURIComponent(invite)}` : "";
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-6 py-10">
-      <Link href={`/${codeQ}`} className="mb-6 text-sm text-muted hover:text-slate-200">
-        ← back
-      </Link>
-      <h1 className="mb-1 text-2xl font-bold">Create your account</h1>
-      <p className="mb-6 text-sm text-muted">Join the action in a minute.</p>
-
-      <div className="card space-y-4">
-        <SignupForm invite={invite} />
-        <div className="flex items-center gap-3 text-xs text-muted">
-          <div className="h-px flex-1 bg-border" /> or{" "}
+    <AuthShell
+      title="Create your account"
+      subtitle="Join the action in under a minute."
+      backHref={`/${q}`}
+    >
+      <div className="space-y-5">
+        <GoogleButton invite={invite} />
+        <div className="flex items-center gap-3 text-xs text-faint">
+          <div className="h-px flex-1 bg-border" /> or sign up with email{" "}
           <div className="h-px flex-1 bg-border" />
         </div>
-        <GoogleButton invite={invite} />
+        <SignupForm invite={invite} />
       </div>
-
       <p className="mt-6 text-center text-sm text-muted">
         Already have an account?{" "}
-        <Link href={`/login${codeQ}`} className="text-accent hover:underline">
+        <Link href={`/login${q}`} className="font-medium text-primary hover:underline">
           Log in
         </Link>
       </p>
-    </main>
+    </AuthShell>
   );
 }

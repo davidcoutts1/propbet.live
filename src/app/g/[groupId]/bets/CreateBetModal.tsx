@@ -65,9 +65,9 @@ export default function CreateBetModal({
   ];
 
   return (
-    <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="absolute inset-x-0 bottom-0 mx-auto max-h-[90dvh] max-w-2xl overflow-y-auto rounded-t-3xl border-t border-border bg-surface p-5">
+    <div className="fixed inset-0 z-50 flex items-end justify-center lg:items-center">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative m-0 max-h-[92dvh] w-full max-w-2xl overflow-y-auto rounded-t-3xl border-t border-border bg-surface p-5 shadow-float lg:m-4 lg:max-w-lg lg:rounded-3xl lg:border">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold">Create a bet</h2>
           <button onClick={onClose} className="text-muted hover:text-slate-200">

@@ -21,14 +21,23 @@ export default async function OnboardingPage({
     .single();
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-6 py-10">
-      <h1 className="mb-1 text-2xl font-bold">
-        Welcome{profile?.username ? `, ${profile.username}` : ""} 👋
-      </h1>
-      <p className="mb-6 text-sm text-muted">
-        Join a group with an invite code, or start your own.
-      </p>
-      <OnboardingClient initialInvite={invite ?? ""} />
+    <main className="relative flex min-h-dvh flex-col justify-center overflow-hidden px-6 py-10">
+      <div className="pointer-events-none absolute inset-0 bg-brand-radial" />
+      <div className="relative mx-auto w-full max-w-md animate-fade-up">
+        <div className="mb-6 flex items-center gap-2 font-display text-lg font-bold">
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand-gradient text-slate-950">
+            P
+          </span>
+          prop<span className="text-gradient -ml-1.5">bet</span>
+        </div>
+        <h1 className="mb-1 font-display text-3xl font-bold tracking-tight">
+          Welcome{profile?.username ? `, ${profile.username}` : ""} 👋
+        </h1>
+        <p className="mb-6 text-muted">
+          Join a group with an invite code, or start your own.
+        </p>
+        <OnboardingClient initialInvite={invite ?? ""} />
+      </div>
     </main>
   );
 }

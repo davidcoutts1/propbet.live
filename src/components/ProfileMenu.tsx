@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Group, Profile } from "@/lib/types";
@@ -22,10 +23,23 @@ export default function ProfileMenu({
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [copied, setCopied] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [username, setUsername] = useState(profile.username);
   const [nameMsg, setNameMsg] = useState<string | null>(null);
+
+  useEffect(() => setMounted(true), []);
+
+  // lock background scroll while the drawer is open
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
 
   const initial = profile.username?.[0]?.toUpperCase() ?? "?";
   const inviteLink =
@@ -77,19 +91,21 @@ export default function ProfileMenu({
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-slate-950"
+        className="grid h-9 w-9 place-items-center rounded-full bg-brand-gradient text-sm font-bold text-slate-950 ring-2 ring-primary/20 transition hover:ring-primary/40"
         aria-label="Profile menu"
       >
         {initial}
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-50">
-          <div
-            className="absolute inset-0 bg-black/60"
-            onClick={() => setOpen(false)}
-          />
-          <div className="absolute right-0 top-0 flex h-full w-full max-w-sm flex-col overflow-y-auto bg-surface p-5 shadow-2xl">
+      {open &&
+        mounted &&
+        createPortal(
+          <div className="fixed inset-0 z-[100]">
+            <div
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+              onClick={() => setOpen(false)}
+            />
+            <div className="absolute right-0 top-0 flex h-full w-full max-w-sm animate-fade-up flex-col overflow-y-auto border-l border-border bg-surface p-5 shadow-float">
             <div className="mb-5 flex items-start justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-lg font-bold text-slate-950">
@@ -214,9 +230,10 @@ export default function ProfileMenu({
             <button onClick={doSignOut} className="btn-danger mt-2 w-full">
               Sign out
             </button>
-          </div>
-        </div>
-      )}
+            </div>
+          </div>,
+          document.body
+        )}
     </>
   );
 }

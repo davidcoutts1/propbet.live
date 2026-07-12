@@ -14,7 +14,7 @@ export default function BottomNav({ groupId }: { groupId: string }) {
   const pathname = usePathname();
 
   return (
-    <nav className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-border bg-bg/90 backdrop-blur">
+    <nav className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-border bg-bg/90 backdrop-blur lg:hidden">
       <div className="mx-auto grid max-w-2xl grid-cols-4">
         {tabs.map((t) => {
           const href = `/g/${groupId}/${t.key}`;

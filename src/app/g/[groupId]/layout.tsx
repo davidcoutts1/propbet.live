@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { money } from "@/lib/odds";
 import BottomNav from "@/components/BottomNav";
+import SideNav from "@/components/SideNav";
 import ProfileMenu from "@/components/ProfileMenu";
 import type { Group, GroupMember, Profile } from "@/lib/types";
 
@@ -67,29 +68,47 @@ export default async function GroupLayout({
   const isAdmin = group.admin_id === user.id;
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-2xl flex-col">
-      <header className="safe-top sticky top-0 z-30 border-b border-border bg-bg/80 backdrop-blur">
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="min-w-0">
-            <div className="truncate text-sm font-semibold">{group.name}</div>
-            <div className="text-xs text-muted">
-              Balance{" "}
-              <span className="font-semibold text-primary">
-                {money(Number(member.balance))}
+    <div className="min-h-dvh">
+      <SideNav
+        groupId={groupId}
+        groupName={group.name}
+        balance={Number(member.balance)}
+      />
+
+      <div className="lg:pl-64">
+        <header className="safe-top sticky top-0 z-20 border-b border-border bg-bg/80 backdrop-blur">
+          <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 lg:px-8">
+            <div className="min-w-0 lg:hidden">
+              <div className="truncate text-sm font-semibold">{group.name}</div>
+              <div className="text-xs text-muted">
+                Balance{" "}
+                <span className="font-semibold text-primary tabular">
+                  {money(Number(member.balance))}
+                </span>
+              </div>
+            </div>
+            <div className="hidden items-center gap-2 text-sm text-muted lg:flex">
+              <span className="chip">
+                Invite code{" "}
+                <span className="ml-1 font-mono font-semibold tracking-widest text-slate-100">
+                  {group.invite_code}
+                </span>
               </span>
             </div>
+            <ProfileMenu
+              group={group}
+              profile={profile!}
+              isAdmin={isAdmin}
+              myGroups={myGroups}
+              members={members}
+            />
           </div>
-          <ProfileMenu
-            group={group}
-            profile={profile!}
-            isAdmin={isAdmin}
-            myGroups={myGroups}
-            members={members}
-          />
-        </div>
-      </header>
+        </header>
 
-      <main className="flex-1 px-4 pb-28 pt-4">{children}</main>
+        <main className="mx-auto max-w-4xl px-4 pb-28 pt-5 lg:px-8 lg:pb-12">
+          {children}
+        </main>
+      </div>
 
       <BottomNav groupId={groupId} />
     </div>

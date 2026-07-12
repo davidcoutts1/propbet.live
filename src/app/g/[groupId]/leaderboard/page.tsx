@@ -26,7 +26,9 @@ export default async function LeaderboardPage({
 
   return (
     <div>
-      <h1 className="mb-4 text-lg font-bold">Leaderboard</h1>
+      <h1 className="mb-5 font-display text-2xl font-bold tracking-tight">
+        Leaderboard
+      </h1>
       <div className="space-y-2">
         {board.map((r, i) => {
           const games = r.wins + r.losses;
