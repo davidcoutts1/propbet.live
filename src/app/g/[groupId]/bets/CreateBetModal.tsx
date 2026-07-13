@@ -22,8 +22,8 @@ export default function CreateBetModal({
   const [line, setLine] = useState<string>("");
   const [labelA, setLabelA] = useState("Yes");
   const [labelB, setLabelB] = useState("No");
-  const [oddsA, setOddsA] = useState<number>(-110);
-  const [oddsB, setOddsB] = useState<number>(-110);
+  const [oddsA, setOddsA] = useState<string>("-110");
+  const [oddsB, setOddsB] = useState<string>("-110");
   const [closesAt, setClosesAt] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -34,8 +34,18 @@ export default function CreateBetModal({
     e.preventDefault();
     setError(null);
     if (!title.trim()) return setError("Give the bet a title.");
-    if (oddsA === 0 || oddsB === 0 || Number.isNaN(oddsA) || Number.isNaN(oddsB))
-      return setError("Enter valid American odds (e.g. +100 for even).");
+
+    const oA = parseInt(oddsA, 10);
+    const oB = parseInt(oddsB, 10);
+    if (
+      Number.isNaN(oA) ||
+      Number.isNaN(oB) ||
+      Math.abs(oA) < 100 ||
+      Math.abs(oB) < 100
+    )
+      return setError(
+        "Enter valid American odds — at least ±100 (e.g. +150 or -200)."
+      );
 
     const lineNum = parseFloat(line);
     if (isOU && Number.isNaN(lineNum))
@@ -52,9 +62,9 @@ export default function CreateBetModal({
       category,
       line: isOU ? lineNum : null,
       optionALabel: finalLabelA,
-      optionAOdds: americanToDecimal(oddsA),
+      optionAOdds: americanToDecimal(oA),
       optionBLabel: finalLabelB,
-      optionBOdds: americanToDecimal(oddsB),
+      optionBOdds: americanToDecimal(oB),
       closesAt: closesAt ? new Date(closesAt).toISOString() : null,
     });
     setSaving(false);
@@ -172,30 +182,28 @@ export default function CreateBetModal({
                 {isOU ? "Over" : "A"} odds (American)
               </label>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 className="input"
                 value={oddsA}
-                onChange={(e) => setOddsA(Number(e.target.value))}
+                onChange={(e) => setOddsA(e.target.value.replace(/[^0-9-]/g, ""))}
+                placeholder="-110"
               />
-              <p className="mt-1 text-xs text-muted">
-                = {formatAmerican(americanToDecimal(oddsA || 100))} ·{" "}
-                {americanToDecimal(oddsA || 100).toFixed(2)}x
-              </p>
+              <OddsHint value={oddsA} />
             </div>
             <div>
               <label className="label">
                 {isOU ? "Under" : "B"} odds (American)
               </label>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 className="input"
                 value={oddsB}
-                onChange={(e) => setOddsB(Number(e.target.value))}
+                onChange={(e) => setOddsB(e.target.value.replace(/[^0-9-]/g, ""))}
+                placeholder="+150"
               />
-              <p className="mt-1 text-xs text-muted">
-                = {formatAmerican(americanToDecimal(oddsB || 100))} ·{" "}
-                {americanToDecimal(oddsB || 100).toFixed(2)}x
-              </p>
+              <OddsHint value={oddsB} />
             </div>
           </div>
 
@@ -215,5 +223,19 @@ export default function CreateBetModal({
         </form>
       </div>
     </div>
+  );
+}
+
+// Live decimal-odds preview for an American-odds string. Shows a nudge until a
+// valid value (magnitude ≥ 100) is entered.
+function OddsHint({ value }: { value: string }) {
+  const n = parseInt(value, 10);
+  if (Number.isNaN(n) || Math.abs(n) < 100)
+    return <p className="mt-1 text-xs text-faint">e.g. -110 or +150</p>;
+  const dec = americanToDecimal(n);
+  return (
+    <p className="mt-1 text-xs text-muted">
+      = {formatAmerican(dec)} · {dec.toFixed(2)}x payout
+    </p>
   );
 }

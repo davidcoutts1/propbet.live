@@ -18,7 +18,7 @@ export default function AdminPanel({
 }) {
   const router = useRouter();
   const [openBets, setOpenBets] = useState<Bet[]>([]);
-  const [amount, setAmount] = useState(500);
+  const [amount, setAmount] = useState("500");
   const [busy, setBusy] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [newAdmin, setNewAdmin] = useState("");
@@ -40,12 +40,19 @@ export default function AdminPanel({
   }, [groupId]);
 
   async function grant() {
+    const amt = parseFloat(amount);
+    if (Number.isNaN(amt) || amt === 0)
+      return setMsg("Enter a non-zero amount (negative to take money back).");
     setBusy("grant");
     setMsg(null);
-    const res = await adjustAllBalances({ groupId, amount });
+    const res = await adjustAllBalances({ groupId, amount: amt });
     setBusy(null);
     if (!res.ok) return setMsg(res.error);
-    setMsg(`Granted ${money(amount)} to everyone.`);
+    setMsg(
+      amt >= 0
+        ? `Granted ${money(amt)} to everyone.`
+        : `Took ${money(Math.abs(amt))} from everyone.`
+    );
     router.refresh();
   }
 
@@ -131,11 +138,12 @@ export default function AdminPanel({
               $
             </span>
             <input
-              type="number"
-              step={100}
+              type="text"
+              inputMode="numeric"
               className="input pl-7"
               value={amount}
-              onChange={(e) => setAmount(Number(e.target.value))}
+              onChange={(e) => setAmount(e.target.value.replace(/[^0-9.-]/g, ""))}
+              placeholder="500"
             />
           </div>
           <button className="btn-primary" disabled={busy === "grant"} onClick={grant}>
