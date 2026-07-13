@@ -5,7 +5,8 @@ type CookieToSet = { name: string; value: string; options: CookieOptions };
 
 /**
  * Refreshes the Supabase auth session on every request and gates access to
- * the authenticated app. Returns the (possibly cookie-mutated) response.
+ * the authenticated app. Any redirect must carry over the cookies that the
+ * refresh wrote, or the browser keeps stale tokens and appears logged out.
  */
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -31,6 +32,7 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
+  // IMPORTANT: nothing between createServerClient and getUser()
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -43,19 +45,25 @@ export async function updateSession(request: NextRequest) {
     path.startsWith("/auth") ||
     path.startsWith("/reset-password");
 
-  // Not signed in and hitting a protected route -> send to login
-  if (!user && !isPublic) {
+  // Carry the (possibly refreshed) auth cookies onto a redirect response.
+  const redirectTo = (pathname: string, opts?: { next?: string }) => {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("next", path);
-    return NextResponse.redirect(url);
+    url.pathname = pathname;
+    url.search = "";
+    if (opts?.next) url.searchParams.set("next", opts.next);
+    const redirect = NextResponse.redirect(url);
+    response.cookies.getAll().forEach((c) => redirect.cookies.set(c));
+    return redirect;
+  };
+
+  // Not signed in and hitting a protected route -> login
+  if (!user && !isPublic) {
+    return redirectTo("/login", { next: path });
   }
 
-  // Signed in and sitting on login/signup -> push into the app
+  // Signed in and sitting on login/signup -> into the app
   if (user && (path.startsWith("/login") || path.startsWith("/signup"))) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/app";
-    return NextResponse.redirect(url);
+    return redirectTo("/app");
   }
 
   return response;

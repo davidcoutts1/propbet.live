@@ -6,6 +6,7 @@ import { money } from "@/lib/odds";
 
 const tabs = [
   { key: "bets", label: "Bets", icon: "🎯" },
+  { key: "activity", label: "Activity", icon: "🔔" },
   { key: "leaderboard", label: "Leaderboard", icon: "🏆" },
   { key: "chat", label: "Chat", icon: "💬" },
   { key: "mybets", label: "My Bets", icon: "🧾" },
@@ -15,10 +16,12 @@ export default function SideNav({
   groupId,
   groupName,
   balance,
+  unread = 0,
 }: {
   groupId: string;
   groupName: string;
   balance: number;
+  unread?: number;
 }) {
   const pathname = usePathname();
 
@@ -57,6 +60,11 @@ export default function SideNav({
             >
               <span className="text-lg leading-none">{t.icon}</span>
               {t.label}
+              {t.key === "activity" && unread > 0 && (
+                <span className="ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-slate-950">
+                  {unread > 99 ? "99+" : unread}
+                </span>
+              )}
             </Link>
           );
         })}

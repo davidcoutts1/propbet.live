@@ -23,6 +23,7 @@ export type GroupMember = {
   wins: number;
   losses: number;
   joined_at: string;
+  activity_seen_at: string;
 };
 
 export type BetCategory = "straight" | "prop" | "over_under";

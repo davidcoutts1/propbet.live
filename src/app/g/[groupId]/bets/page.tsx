@@ -35,12 +35,21 @@ export default async function BetsPage({
     .eq("status", "open")
     .order("created_at", { ascending: false });
 
+  const { data: settled } = await supabase
+    .from("bets")
+    .select("*")
+    .eq("group_id", groupId)
+    .neq("status", "open")
+    .order("settled_at", { ascending: false })
+    .limit(100);
+
   return (
     <BetsBoard
       groupId={groupId}
       balance={Number(member?.balance ?? 0)}
       familyFriendly={group?.family_friendly ?? true}
       initialBets={(bets as Bet[]) ?? []}
+      settledBets={(settled as Bet[]) ?? []}
     />
   );
 }

@@ -67,12 +67,22 @@ export default async function GroupLayout({
 
   const isAdmin = group.admin_id === user.id;
 
+  // Unread activity = events since this member last opened the Activity tab,
+  // excluding their own actions.
+  const { count: unread } = await supabase
+    .from("activity")
+    .select("id", { count: "exact", head: true })
+    .eq("group_id", groupId)
+    .gt("created_at", member.activity_seen_at)
+    .neq("actor_id", user.id);
+
   return (
     <div className="min-h-dvh">
       <SideNav
         groupId={groupId}
         groupName={group.name}
         balance={Number(member.balance)}
+        unread={unread ?? 0}
       />
 
       <div className="lg:pl-64">
@@ -110,7 +120,7 @@ export default async function GroupLayout({
         </main>
       </div>
 
-      <BottomNav groupId={groupId} />
+      <BottomNav groupId={groupId} unread={unread ?? 0} />
     </div>
   );
 }
